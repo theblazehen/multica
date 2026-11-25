@@ -13,6 +13,7 @@
  *   3. X-Request-ID per request + structured logger (debug + tracing)
  *   4. Bearer auth + X-Workspace-Slug — NOT cookie auth (no CSRF, no credentials)
  */
+import { Platform } from "react-native";
 import type {
   Agent,
   AgentTask,
@@ -154,7 +155,7 @@ export interface LoginResponse {
 }
 
 /** Mobile file payload for `uploadFile`. RN doesn't have a browser `File`
- *  object; the fetch `FormData` polyfill accepts `{ uri, name, type }`
+ *  object; React Native's `FormData` (sent through XHR) accepts `{ uri, name, type }`
  *  directly and streams from disk. expo-image-picker / expo-document-picker
  *  return assets that map straight onto this shape. */
 export interface FileAsset {
@@ -224,7 +225,7 @@ class ApiClient {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       "X-Client-Platform": "mobile",
-      "X-Client-OS": "ios",
+      "X-Client-OS": Platform.OS,
       "X-Client-Version": "0.1.0",
       "X-Request-ID": rid,
       ...((init.headers as Record<string, string>) ?? {}),
@@ -1312,8 +1313,9 @@ class ApiClient {
   /**
    * Multipart-stream a file to `/api/upload-file`. Mirrors the web
    * implementation in `packages/core/api/client.ts:uploadFile` but with the
-   * RN-shaped `FileAsset` instead of a browser `File`. The fetch FormData
-   * polyfill recognises `{ uri, name, type }` and reads the file off disk.
+   * RN-shaped `FileAsset` instead of a browser `File`. React Native's
+   * FormData recognises `{ uri, name, type }` and its networking layer
+   * streams the file off disk.
    *
    * `opts.issueId` / `opts.commentId` link the attachment record. Pass
    * `issueId` when uploading from a comment composer / reply input; leave
@@ -1324,6 +1326,11 @@ class ApiClient {
    *   - FormData must not have a `Content-Type` header preset (the browser /
    *     RN fetch needs to set the multipart boundary itself).
    *   - `this.fetch` hard-codes `application/json`.
+   *   - Expo SDK 57 replaces the global `fetch` with `expo/fetch`, whose
+   *     FormData encoder only accepts strings and Blobs and rejects a
+   *     `{ uri }` part with "Unsupported FormDataPart implementation".
+   *     `XMLHttpRequest` is still React Native's own, which reads `uri`
+   *     parts natively on iOS and Android, so the request goes through XHR.
    *
    * So we re-implement the auth + slug + logging shell inline.
    */
@@ -1338,7 +1345,7 @@ class ApiClient {
     const headers: Record<string, string> = {
       // No Content-Type — let fetch set the multipart boundary.
       "X-Client-Platform": "mobile",
-      "X-Client-OS": "ios",
+      "X-Client-OS": Platform.OS,
       "X-Client-Version": "0.1.0",
       "X-Request-ID": rid,
     };
@@ -1357,19 +1364,27 @@ class ApiClient {
     if (opts?.commentId) formData.append("comment_id", opts.commentId);
 
     console.log(`[api] → POST ${path}`, { rid, filename: asset.name });
-
-    const res = await fetch(`${API_URL}${path}`, {
-      method: "POST",
-      headers,
-      body: formData,
-    });
+    const res = await new Promise<{ status: number; body: string }>(
+      (resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${API_URL}${path}`);
+        for (const [key, value] of Object.entries(headers)) {
+          xhr.setRequestHeader(key, value);
+        }
+        xhr.onload = () => resolve({ status: xhr.status, body: xhr.responseText });
+        xhr.onerror = () => reject(new TypeError("Network request failed"));
+        xhr.ontimeout = () => reject(new TypeError("Network request timed out"));
+        xhr.send(formData);
+      },
+    );
+    const ok = res.status >= 200 && res.status < 300;
     const duration = Date.now() - start;
 
-    if (!res.ok) {
+    if (!ok) {
       if (res.status === 401) this.options.onUnauthorized?.();
       let body: unknown;
       try {
-        body = await res.json();
+        body = JSON.parse(res.body);
       } catch {
         body = undefined;
       }
@@ -1395,7 +1410,7 @@ class ApiClient {
     // user's text as `![](undefined)`. Throw on shape mismatch so the
     // caller's Alert path fires instead of letting a broken link land in
     // the editor.
-    const json: unknown = await res.json();
+    const json: unknown = JSON.parse(res.body);
     const parsed = AttachmentSchema.safeParse(json);
     if (!parsed.success) {
       console.error(`[api] ← shape mismatch ${path}`, {

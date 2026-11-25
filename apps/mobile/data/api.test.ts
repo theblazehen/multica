@@ -10,6 +10,9 @@ vi.hoisted(() => {
 
 // The real store pulls in expo-secure-store; the client only needs the slug.
 vi.mock("@/data/workspace-store", () => ({ getCurrentSlug: () => null }));
+// api.ts reads Platform.OS for the X-Client-OS header; the real package can't
+// load under Node.
+vi.mock("react-native", () => ({ Platform: { OS: "ios" } }));
 
 describe("api.listAgents", () => {
   afterEach(() => vi.unstubAllGlobals());
