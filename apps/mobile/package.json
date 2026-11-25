@@ -15,9 +15,18 @@
     "ios:device:staging:release": "dotenv -e .env.staging -- cross-env APP_ENV=staging ./scripts/ios-run.sh --device --configuration Release",
     "ios:device:prod": "dotenv -e .env.production.local -e .env.production -- cross-env APP_ENV=production ./scripts/ios-run.sh --device",
     "ios:device:prod:release": "dotenv -e .env.production.local -e .env.production -- cross-env APP_ENV=production ./scripts/ios-run.sh --device --configuration Release",
+    "android": "./scripts/android-run.sh",
+    "android:staging": "dotenv -e .env.staging -- cross-env APP_ENV=staging ./scripts/android-run.sh",
+    "android:staging:release": "dotenv -e .env.staging -- cross-env APP_ENV=staging ./scripts/android-run.sh --variant release",
+    "android:prod": "dotenv -e .env.production.local -e .env.production -- cross-env APP_ENV=production ./scripts/android-run.sh",
+    "android:prod:release": "dotenv -e .env.production.local -e .env.production -- cross-env APP_ENV=production ./scripts/android-run.sh --variant release",
+    "android:apk:staging": "dotenv -e .env.staging -- cross-env APP_ENV=staging ./scripts/android-build.sh debug",
+    "android:apk:staging:release": "dotenv -e .env.staging -- cross-env APP_ENV=staging ./scripts/android-build.sh release",
+    "android:apk:prod": "dotenv -e .env.production.local -e .env.production -- cross-env APP_ENV=production ./scripts/android-build.sh debug",
+    "android:apk:prod:release": "dotenv -e .env.production.local -e .env.production -- cross-env APP_ENV=production ./scripts/android-build.sh release",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run && bash scripts/ios-run.test.sh"
+    "test": "vitest run && bash scripts/ios-run.test.sh && bash scripts/android-run.test.sh"
   },
   "dependencies": {
     "@expo/dom-webview": "~57.0.1",

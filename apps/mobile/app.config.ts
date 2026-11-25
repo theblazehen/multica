@@ -13,6 +13,20 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const env = process.env.APP_ENV ?? "development";
   const isProd = env === "production";
   const isStaging = env === "staging";
+  // Per-variant app id overrides exist for one reason: an Apple ID can only
+  // sign bundle prefixes it owns, so contributors not on the Multica Apple
+  // Developer team (and external users self-building a personal copy against
+  // production) need to swap to a reverse-domain they control. Each variant
+  // has its own `_<VARIANT>` suffix and is only read inside that variant's
+  // branch — a generic `EXPO_BUNDLE_IDENTIFIER` would leak across variants
+  // (Expo CLI auto-loads `.env.<mode>.local` regardless of APP_ENV) and
+  // collapse dev / staging / prod onto a single id. Android uses the same id
+  // as its application id, so each variant installs side by side there too.
+  const appId = isProd
+    ? (process.env.EXPO_BUNDLE_IDENTIFIER_PROD ?? "ai.multica.mobile")
+    : isStaging
+      ? (process.env.EXPO_BUNDLE_IDENTIFIER_STAGING ?? "ai.multica.mobile.staging")
+      : (process.env.EXPO_BUNDLE_IDENTIFIER_DEV ?? "ai.multica.mobile.dev");
 
   return {
     ...config,
@@ -47,20 +61,17 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       // the intended team on every `scripts/ios-run.sh` run, which also repairs
       // an already-mispinned checkout.
       appleTeamId: process.env.EXPO_APPLE_TEAM_ID,
-      // Per-variant bundle id overrides exist for one reason: an Apple ID
-      // can only sign bundle prefixes it owns, so contributors not on the
-      // Multica Apple Developer team (and external users self-building a
-      // personal copy against production) need to swap to a reverse-domain
-      // they control. Each variant has its own `_<VARIANT>` suffix and is
-      // only read inside that variant's branch — a generic
-      // `EXPO_BUNDLE_IDENTIFIER` would leak across variants (Expo CLI
-      // auto-loads `.env.<mode>.local` regardless of APP_ENV) and collapse
-      // dev / staging / prod onto a single id.
-      bundleIdentifier: isProd
-        ? (process.env.EXPO_BUNDLE_IDENTIFIER_PROD ?? "ai.multica.mobile")
-        : isStaging
-          ? (process.env.EXPO_BUNDLE_IDENTIFIER_STAGING ?? "ai.multica.mobile.staging")
-          : (process.env.EXPO_BUNDLE_IDENTIFIER_DEV ?? "ai.multica.mobile.dev"),
+      bundleIdentifier: appId,
+    },
+    android: {
+      package: appId,
+      // The shared icon is full-bleed with the glyph inside the central 60%,
+      // which already sits in the adaptive-icon safe zone (inner 66%), so it
+      // doubles as the foreground layer. The background matches its fill.
+      adaptiveIcon: {
+        foregroundImage: "./assets/icon.png",
+        backgroundColor: "#0B0B0C",
+      },
     },
     plugins: [
       "expo-router",

@@ -40,6 +40,7 @@ describe("iOS scene lifecycle configuration", () => {
 
     expect(config.name).toBe(name);
     expect(config.ios?.bundleIdentifier).toBe(bundleIdentifier);
+    expect(config.android?.package).toBe(bundleIdentifier);
     expect(config.scheme).toBe("multica");
     expect(config.plugins).toContainEqual([
       "expo-build-properties",
@@ -60,6 +61,7 @@ describe("iOS scene lifecycle configuration", () => {
 
     const config = createConfig({ config: {} } as ConfigContext);
     expect(config.ios).toMatchObject({ bundleIdentifier, appleTeamId: "ABCDE12345" });
+    expect(config.android?.package).toBe(bundleIdentifier);
     expect(config.scheme).toBe("multica");
   });
 });
