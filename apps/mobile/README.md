@@ -1,6 +1,6 @@
-# Multica Mobile (iOS)
+# Multica Mobile (iOS and Android)
 
-Expo + React Native iOS client for Multica. Independent from web/desktop — shares types and pure utilities from `@multica/core/`. See [`AGENTS.md`](./AGENTS.md) for mobile architecture and development rules; `package.json` records the current dependency versions.
+Expo + React Native client for Multica on iOS and Android. Independent from web/desktop — shares types and pure utilities from `@multica/core/`. See [`AGENTS.md`](./AGENTS.md) for mobile architecture and development rules; `package.json` records the current dependency versions. Android build and install steps are in [Android](#android).
 
 ## Just want to use it on your phone? (no development)
 
@@ -155,3 +155,48 @@ Edit `EXPO_PUBLIC_API_URL` in `.env.staging`, `.env.production.local`, or `.env.
 - For an installed **Release build**: re-run the `ios:mobile:device:staging:release` command — the value is baked into the embedded bundle at build time.
 
 For local backend testing, use your Mac's LAN IP (`ipconfig getifaddr en0`), not `localhost`.
+
+## Android
+
+The same app builds for Android. Package ids mirror the iOS bundle ids (`ai.multica.mobile`, `.staging`, `.dev`, with the same `EXPO_BUNDLE_IDENTIFIER_*` overrides), so variants install side by side. In this fork `.env.production.local` is committed and points the production variant at `https://project.blazelight.dev`.
+
+**Prerequisites**: JDK 17, Node 22, pnpm 10.28.2, and the Android SDK command-line tools with `ANDROID_HOME` set and the licences accepted (`yes | sdkmanager --licenses`). Gradle downloads the platform, build tools and NDK that React Native asks for. Turn on USB debugging on the phone.
+
+With the phone plugged into the build machine:
+
+| Command | What it does | Backend |
+|---|---|---|
+| `pnpm android:mobile:prod` | Prebuild, build and install the dev client (Debug), start Metro | production |
+| `pnpm android:mobile:prod:release` | Prebuild, build and install a standalone Release build | production |
+| `pnpm android:mobile:staging[:release]` | Same, against staging | staging |
+
+When the build machine has no phone attached (a remote Linux box), build an APK there and install it from the machine the phone is plugged into:
+
+```bash
+# on the build machine; arm64-v8a only is much faster than all four ABIs
+cd apps/mobile
+pnpm android:apk:prod:release -PreactNativeArchitectures=arm64-v8a
+# -> android/app/build/outputs/apk/release/app-release.apk
+
+# on the machine with the phone
+adb install -r app-release.apk
+```
+
+For the dev loop against a remote Metro, build the dev client once (`pnpm android:apk:prod -PreactNativeArchitectures=arm64-v8a`, again only after native changes), install `app-debug.apk`, run `pnpm dev:mobile:prod` on the build machine, and forward Metro's port to the phone:
+
+```bash
+ssh -N -L 8081:127.0.0.1:8081 <build-machine> &
+adb reverse tcp:8081 tcp:8081
+adb shell am start -a android.intent.action.VIEW \
+  -d 'multica://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081'
+```
+
+Edits on the build machine then hot-reload on the phone.
+
+Release APKs are signed with the debug keystore that prebuild generates: fine for sideloading, not for the Play Store. Debug and Release builds share that signature, so `adb install -r` switches between them without signing you out.
+
+Android differences and gaps:
+
+- Action menus open a bottom sheet (`components/ui/action-sheet-host.tsx`) instead of `ActionSheetIOS`, and icons are Ionicons instead of SF Symbols.
+- There are no push notifications on either platform: the app registers with neither APNs nor FCM, and updates arrive over the WebSocket while it is open.
+- Inline code inside list items renders in the body font (a `react-native-enriched-markdown` Android difference); in paragraphs it is monospace.
