@@ -231,6 +231,9 @@ patchedDependencies:
   expo-modules-core@57.0.21:
     hash: 52e0bb7a9afc2d62b773afaf938f3be85fde749ce4047635e71547c1ba8cde0e
     path: apps/mobile/patches/expo-modules-core@57.0.21.patch
+  react-native-shiki-engine@0.3.10:
+    hash: 0aa87e7214110c44244ddc11e8f51f57259dc27938a35542ab4249d1afdd3110
+    path: apps/mobile/patches/react-native-shiki-engine@0.3.10.patch
 
 importers:
 
@@ -688,7 +691,7 @@ importers:
         version: 4.26.2(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       react-native-shiki-engine:
         specifier: ^0.3.10
-        version: 0.3.10(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
+        version: 0.3.10(patch_hash=0aa87e7214110c44244ddc11e8f51f57259dc27938a35542ab4249d1afdd3110)(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       react-native-svg:
         specifier: 15.15.4
         version: 15.15.4(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
@@ -15658,7 +15661,9 @@ snapshots:
       metro-runtime: 0.84.6
     transitivePeerDependencies:
       - '@babel/core'
+      - bufferutil
       - supports-color
+      - utf-8-validate
 
   '@react-native/normalize-colors@0.74.89': {}
 
@@ -23301,7 +23306,7 @@ snapshots:
       react-native: 0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3)
       warn-once: 0.1.1
 
-  react-native-shiki-engine@0.3.10(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3):
+  react-native-shiki-engine@0.3.10(patch_hash=0aa87e7214110c44244ddc11e8f51f57259dc27938a35542ab4249d1afdd3110)(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3):
     dependencies:
       '@shikijs/types': 3.23.0
       '@shikijs/vscode-textmate': 10.0.2
