@@ -12,7 +12,6 @@
  */
 import { useState } from "react";
 import {
-  ActionSheetIOS,
   Alert,
   ActivityIndicator,
   Pressable,
@@ -29,6 +28,7 @@ import { useAuthStore } from "@/data/auth-store";
 import { api } from "@/data/api";
 import type { FileAsset } from "@/data/api";
 import { useT } from "@/lib/i18n";
+import { showActionSheetWithOptions } from "@/lib/action-sheet";
 import { isStorageLimitReached } from "@/lib/upload-error";
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB — matches what's reasonable on cellular.
@@ -79,7 +79,7 @@ export default function ProfileSettingsScreen() {
             : t("common:actions.cancel"),
     );
 
-    ActionSheetIOS.showActionSheetWithOptions(
+    showActionSheetWithOptions(
       {
         options: visibleOptions,
         cancelButtonIndex: cancelIndex,

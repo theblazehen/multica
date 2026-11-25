@@ -11,8 +11,9 @@ vi.mock("react", async (importOriginal) => ({
   useCallback: (callback: unknown) => callback,
 }));
 vi.mock("react-native", () => ({
-  ActionSheetIOS: {}, Alert: {}, FlatList: "FlatList", View: "View",
+  Alert: {}, FlatList: "FlatList", View: "View",
 }));
+vi.mock("@/lib/action-sheet", () => ({ showActionSheetWithOptions: vi.fn() }));
 vi.mock("expo-router", () => ({ router: { push: vi.fn() } }));
 vi.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 vi.mock("@tanstack/react-query", () => ({

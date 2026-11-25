@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from "react";
 import {
-  ActionSheetIOS,
   Alert,
   FlatList,
   View,
@@ -29,6 +28,7 @@ import { useWorkspaceStore } from "@/data/workspace-store";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
 import { useT } from "@/lib/i18n";
+import { showActionSheetWithOptions } from "@/lib/action-sheet";
 import {
   deduplicateInboxItems,
   getInboxNavigationTarget,
@@ -76,7 +76,7 @@ export default function Inbox() {
       t("actions.archive_completed"),
       t("actions.archive_all"),
     ];
-    ActionSheetIOS.showActionSheetWithOptions(
+    showActionSheetWithOptions(
       {
         options,
         cancelButtonIndex: 0,
