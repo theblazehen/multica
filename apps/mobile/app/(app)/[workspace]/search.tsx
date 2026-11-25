@@ -16,13 +16,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   TextInput,
   View,
   type ListRenderItem,
 } from "react-native";
+import { KeyboardAvoidingView } from "@/components/ui/keyboard-avoiding-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQueries } from "@tanstack/react-query";
 import { router } from "expo-router";
@@ -442,7 +441,7 @@ export default function SearchModal() {
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior="padding"
       >
         {/* Search input row */}
         <View className="flex-row items-center gap-3 border-b border-border px-4 py-2">

@@ -581,6 +581,12 @@ export function MessageComposer({
           placeholderTextColor={theme.mutedForeground}
           multiline
           editable={!disabled}
+          // The input only mounts when the composer expands, and every
+          // expand path wants it focused. The rAF `focus()` calls in
+          // `expand` / the reply trigger can run before Android has
+          // attached the new native view, which focuses nothing and leaves
+          // the keyboard down; `autoFocus` focuses once the view is attached.
+          autoFocus
           className="px-4 pt-3 pb-1 text-base text-foreground"
           style={{ minHeight: 28, maxHeight: 140, textAlignVertical: "top" }}
         />

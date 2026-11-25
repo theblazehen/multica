@@ -19,13 +19,12 @@ import { useCallback, useState } from "react";
 import {
   Alert,
   InteractionManager,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   TextInput,
   View,
 } from "react-native";
+import { KeyboardAvoidingView } from "@/components/ui/keyboard-avoiding-view";
 import { Stack, router } from "expo-router";
 import { Text } from "@/components/ui/text";
 import { AutosizeTextArea } from "@/components/ui/autosize-textarea";
@@ -181,7 +180,7 @@ export default function NewProject() {
       <Stack.Screen options={{ headerLeft, headerRight }} />
       <KeyboardAvoidingView
         className="flex-1 bg-background"
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior="padding"
       >
         <ScrollView
           className="flex-1"
