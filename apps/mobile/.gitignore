@@ -10,6 +10,9 @@ web-build/
 # rescues it from the repo-root `.env*` ignore rule lives in the root
 # .gitignore (`!apps/mobile/.env.staging`).
 .env*.local
+# This fork builds against a self-hosted instance (project.blazelight.dev);
+# its production override carries only public URLs, so it is tracked.
+!.env.production.local
 
 # Native (Expo prebuild output)
 ios/
