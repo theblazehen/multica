@@ -19,11 +19,12 @@ vi.mock("react", async (importOriginal) => ({
   },
 }));
 vi.mock("react-native", () => ({
-  Image: { getSize: vi.fn() }, Pressable: "Pressable", View: "View",
+  Image: { getSizeWithHeaders: vi.fn() }, Pressable: "Pressable", View: "View",
 }));
 vi.mock("expo-image", () => ({ Image: "ExpoImage" }));
 vi.mock("react-native-image-viewing", () => ({ default: "ImageView" }));
 vi.mock("@/components/ui/text", () => ({ Text: "Text" }));
+vi.mock("@/data/api", () => ({ api: { getToken: () => null } }));
 
 import { preprocessMobileMarkdown } from "./preprocess";
 import { splitMarkdown } from "./split-markdown";

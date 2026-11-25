@@ -25,6 +25,8 @@ import { createContext, use, useMemo, useState, type ReactNode } from "react";
 import { View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import { Text } from "@/components/ui/text";
+import { api as apiClient } from "@/data/api";
+import { attachmentImageSource, type AttachmentImageSource } from "@/lib/attachment-url";
 
 interface LightboxApi {
   /**
@@ -47,7 +49,7 @@ export function useLightbox(): LightboxApi {
 }
 
 interface Viewing {
-  images: { uri: string }[];
+  images: AttachmentImageSource[];
   index: number;
 }
 
@@ -67,7 +69,11 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
         const images = found >= 0 ? uris : [uri];
         const index = found >= 0 ? found : 0;
         setCurrentIndex(index);
-        setViewing({ images: images.map((u) => ({ uri: u })), index });
+        const token = apiClient.getToken();
+        setViewing({
+          images: images.map((u) => attachmentImageSource(u, token)),
+          index,
+        });
       },
     }),
     [],

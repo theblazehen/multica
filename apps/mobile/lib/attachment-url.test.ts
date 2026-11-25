@@ -13,6 +13,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  attachmentImageSourceWithBase,
   resolveAttachmentUrl,
   resolveAttachmentUrlWithBase,
 } from "./attachment-url";
@@ -121,5 +122,33 @@ describe("resolveAttachmentUrl (env-bound)", () => {
     expect(resolveAttachmentUrl(undefined)).toBeNull();
     expect(resolveAttachmentUrl(null)).toBeNull();
     expect(resolveAttachmentUrl("")).toBeNull();
+  });
+});
+
+describe("attachmentImageSourceWithBase", () => {
+  const BASE = "https://api.example.test/";
+  const download = "https://api.example.test/api/attachments/att-1/download";
+
+  it("attaches the bearer token to API-origin URLs", () => {
+    expect(attachmentImageSourceWithBase(download, "tok", BASE)).toEqual({
+      uri: download,
+      headers: { Authorization: "Bearer tok" },
+    });
+  });
+
+  it("never sends the token to other hosts", () => {
+    const cdn = "https://cdn.example.test/att-1.png?Signature=s";
+    expect(attachmentImageSourceWithBase(cdn, "tok", BASE)).toEqual({ uri: cdn });
+    // A host that merely starts with the API host is a different origin.
+    const lookalike = "https://api.example.test.evil.test/att-1.png";
+    expect(attachmentImageSourceWithBase(lookalike, "tok", BASE)).toEqual({
+      uri: lookalike,
+    });
+  });
+
+  it("leaves the source bare when signed out", () => {
+    expect(attachmentImageSourceWithBase(download, null, BASE)).toEqual({
+      uri: download,
+    });
   });
 });

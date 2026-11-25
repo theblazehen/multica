@@ -42,3 +42,35 @@ export function resolveAttachmentUrl(
 ): string | null {
   return resolveAttachmentUrlWithBase(rawUrl, API_URL);
 }
+
+export interface AttachmentImageSource {
+  uri: string;
+  headers?: Record<string, string>;
+}
+
+/**
+ * Image-loader source for a resolved attachment URL.
+ *
+ * Without a CDN signer, attachments are served from the authenticated
+ * `/api/attachments/{id}/download` route. Web gets through with its session
+ * cookie; native image loaders (expo-image, RN Image) send nothing and get a
+ * 401, so self-hosted images never render. Mobile uses bearer auth, so the
+ * token rides along as a header — only for URLs on the API origin, never
+ * for CDN or third-party hosts.
+ */
+export function attachmentImageSourceWithBase(
+  uri: string,
+  token: string | null,
+  baseUrl: string,
+): AttachmentImageSource {
+  const origin = baseUrl.replace(/\/+$/, "");
+  if (!token || !origin || !uri.startsWith(`${origin}/`)) return { uri };
+  return { uri, headers: { Authorization: `Bearer ${token}` } };
+}
+
+export function attachmentImageSource(
+  uri: string,
+  token: string | null,
+): AttachmentImageSource {
+  return attachmentImageSourceWithBase(uri, token, API_URL);
+}

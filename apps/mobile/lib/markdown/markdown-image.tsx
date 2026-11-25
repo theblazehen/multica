@@ -29,7 +29,8 @@ import { Image as RNImage, Pressable, View } from "react-native";
 import { Image as ExpoImage } from "expo-image";
 import type { Attachment } from "@multica/core/types";
 import { matchAttachmentByURL } from "@multica/core/attachments/image-sequence";
-import { resolveAttachmentUrl } from "@/lib/attachment-url";
+import { attachmentImageSource, resolveAttachmentUrl } from "@/lib/attachment-url";
+import { api } from "@/data/api";
 import { useLightbox } from "./lightbox-provider";
 import { useImageSequence } from "./image-sequence";
 
@@ -66,10 +67,18 @@ export function MarkdownImage({ uri, attachments }: Props) {
     return resolveAttachmentUrl(candidate) ?? uri;
   }, [uri, attachments]);
 
+  // Self-hosted attachment downloads need the bearer token (see
+  // attachmentImageSource); CDN-signed and external URLs stay bare.
+  const source = useMemo(
+    () => attachmentImageSource(resolvedUri, api.getToken()),
+    [resolvedUri],
+  );
+
   useEffect(() => {
     let cancelled = false;
-    RNImage.getSize(
-      resolvedUri,
+    RNImage.getSizeWithHeaders(
+      source.uri,
+      source.headers ?? {},
       (w, h) => {
         if (cancelled || !w || !h) return;
         setAspect(w / h);
@@ -84,13 +93,13 @@ export function MarkdownImage({ uri, attachments }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [resolvedUri]);
+  }, [source]);
 
   return (
     <Pressable onPress={() => open(resolvedUri, sequence)}>
       <View className="rounded-lg overflow-hidden bg-muted">
         <ExpoImage
-          source={{ uri: resolvedUri }}
+          source={source}
           style={{ width: "100%", aspectRatio: aspect ?? 16 / 9 }}
           contentFit="contain"
           transition={150}
