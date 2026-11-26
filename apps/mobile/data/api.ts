@@ -529,8 +529,18 @@ class ApiClient {
     );
   }
 
-  async markInboxRead(id: string): Promise<InboxItem> {
-    return this.fetch<InboxItem>(`/api/inbox/${id}/read`, { method: "POST" });
+  /** `workspaceSlug` overrides the active workspace — a push notification can
+   *  be opened for a workspace the app is not on yet. */
+  async markInboxRead(
+    id: string,
+    opts?: { workspaceSlug?: string },
+  ): Promise<InboxItem> {
+    return this.fetch<InboxItem>(`/api/inbox/${id}/read`, {
+      method: "POST",
+      headers: opts?.workspaceSlug
+        ? { "X-Workspace-Slug": opts.workspaceSlug }
+        : undefined,
+    });
   }
 
   // Archive endpoints — write surface. Match web's surface in

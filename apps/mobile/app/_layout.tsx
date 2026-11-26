@@ -20,6 +20,7 @@ import { NAV_THEME } from "@/lib/theme";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { MobileI18nProvider } from "@/lib/i18n";
 import { ActionSheetHost } from "@/components/ui/action-sheet-host";
+import { usePushNotifications } from "@/lib/use-push-notifications";
 
 // Kick off Shiki highlighter init at module load — fires once per process,
 // finishes before the user navigates to any screen with a code block. If
@@ -33,6 +34,7 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
   // Idempotent guard: 401 on multiple in-flight requests would otherwise
   // logout/navigate repeatedly during the same session-expire moment.
   const signingOutRef = useRef(false);
+  usePushNotifications();
 
   useEffect(() => {
     // Wire 401 handling onto the shared ApiClient singleton. Must be set

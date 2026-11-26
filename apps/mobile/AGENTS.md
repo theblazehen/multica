@@ -16,6 +16,7 @@ These rules apply only to `apps/mobile/`, in addition to the [root instructions]
 - Match product semantics: counts/visibility, permissions, enums, and canonical IDs/fields. Adapt UI and navigation to the phone; document meaningful divergences with the source behavior they preserve.
 - Mirror the relevant behavior using mobile-owned caches and helpers; do not copy cache shapes or UI preprocessing blindly. List transforms must preserve pagination, grouping, and visibility semantics.
 - Reuse `lib/inbox-display.ts` for inbox list display. Badge counts come from the server unread summary via `lib/unread-counts.ts` and `data/queries/inbox.ts`; do not derive them from the downloaded list. Inbox writes/events refresh both the list and unread summary through `data/realtime/inbox-ws-updaters.ts`.
+- Android push (README "Push notifications") opens what the inbox row opens: keep `lib/push-target.ts` in step with `getInboxNavigationTarget`. The notification text comes from the multica-push notifier, not the app.
 - An explicit implementation request authorizes work. Explain significant interaction choices and parity points briefly; ask when an unresolved product decision affects the implementation, not for a second approval using special wording.
 
 ## UI Components

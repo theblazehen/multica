@@ -198,5 +198,32 @@ Release APKs are signed with the debug keystore that prebuild generates: fine fo
 Android differences and gaps:
 
 - Action menus open a bottom sheet (`components/ui/action-sheet-host.tsx`) instead of `ActionSheetIOS`, and icons are Ionicons instead of SF Symbols.
-- There are no push notifications on either platform: the app registers with neither APNs nor FCM, and updates arrive over the WebSocket while it is open.
+- Push notifications are Android-only and come from the fork's own notifier (next section). iOS has none: the app never registers with APNs, and updates arrive over the WebSocket while it is open.
 - Inline code inside list items renders in the body font (a `react-native-enriched-markdown` Android difference); in paragraphs it is monospace.
+
+### Push notifications (Android)
+
+Multica's server sends no push. In this fork a small notifier service, `multica-push`, runs beside the backend (Jasmin's nix config: `packages/multica-push` and `kubernetes/multica.nix`). It reads new `inbox_item` rows from the Multica database, read-only, and sends each one through Firebase Cloud Messaging (HTTP v1) to every device its recipient registered. The app talks to it at `EXPO_PUBLIC_PUSH_URL`; the production variant sets `https://project.blazelight.dev/push`, and a build without that variable runs without push.
+
+What the app does (`lib/push-notifications.ts`, `lib/use-push-notifications.ts`):
+
+- Once you are signed in, it creates the "Inbox" notification channel, asks for the notification permission (the Android 13+ prompt appears once), and registers the device's FCM token with `POST $EXPO_PUBLIC_PUSH_URL/devices` using your Multica bearer token. The notifier checks that token against `GET /api/me`, so the device is stored under your real user id. It re-registers on every launch and whenever FCM rotates the token.
+- Signing out sends `DELETE $EXPO_PUBLIC_PUSH_URL/devices`, then deletes the FCM token itself, so the device goes quiet even when the session ended with a 401.
+- Tapping a notification opens what the inbox row would open (the issue at the comment, a notice's detail sheet, or the inbox) and marks the item read, including when the tap cold-starts the app (`lib/push-target.ts`).
+
+Firebase project `multica-blazelight` registers the three Android ids (`ai.multica.mobile`, `.staging`, `.dev`). Its `google-services.json` holds no secrets and is committed. `app.config.ts` only wires it in for those ids: a build under an `EXPO_BUNDLE_IDENTIFIER_*` override leaves Firebase out, because Gradle rejects a package the file doesn't list. The `expo-notifications` plugin would also add the `aps-environment` entitlement on iOS, which a free Apple ID cannot sign, so `app.config.ts` removes it again.
+
+To regenerate `google-services.json` (after adding an app id, or for another Firebase project), register the id in the Firebase console (Project settings → Your apps → Add app → Android) and download the file there, or with the REST API:
+
+```bash
+P=multica-blazelight
+T=$(gcloud auth print-access-token)
+# list the apps, then fetch the config of any one of them: it lists every Android app in the project
+curl -s -H "Authorization: Bearer $T" -H "x-goog-user-project: $P" \
+  https://firebase.googleapis.com/v1beta1/projects/$P/androidApps
+curl -s -H "Authorization: Bearer $T" -H "x-goog-user-project: $P" \
+  https://firebase.googleapis.com/v1beta1/projects/$P/androidApps/<appId>/config \
+  | jq -r .configFileContents | base64 -d > apps/mobile/google-services.json
+```
+
+Rebuild the APK afterwards: the file is compiled into the app. Push changes are native, so a dev client needs rebuilding too (`pnpm android:apk:prod`).

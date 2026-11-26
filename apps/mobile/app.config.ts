@@ -1,4 +1,32 @@
 import type { ExpoConfig, ConfigContext } from "expo/config";
+import { withEntitlementsPlist, type ConfigPlugin } from "expo/config-plugins";
+
+/**
+ * Application ids registered in the Firebase project behind
+ * google-services.json (see README "Push notifications"). A build under any
+ * other id (an EXPO_BUNDLE_IDENTIFIER_* override) leaves Firebase out, since
+ * Gradle's google-services step rejects a package the file doesn't list; push
+ * registration then reports unavailable and the app runs without it.
+ */
+const FIREBASE_ANDROID_IDS = [
+  "ai.multica.mobile",
+  "ai.multica.mobile.staging",
+  "ai.multica.mobile.dev",
+];
+
+/**
+ * expo-notifications always adds the aps-environment entitlement on iOS, which
+ * a free (personal team) Apple ID cannot sign. Push is Android-only here, so
+ * drop it again. Applied to the config directly rather than listed in
+ * `plugins`: its mod is then registered before expo-notifications', and the
+ * last-registered mod runs first, so this one sees the plist after
+ * expo-notifications wrote it.
+ */
+const withoutIosPushEntitlement: ConfigPlugin = (config) =>
+  withEntitlementsPlist(config, (mod) => {
+    delete mod.modResults["aps-environment"];
+    return mod;
+  });
 
 /**
  * Dynamic Expo config — replaces app.json so we can read APP_ENV at runtime
@@ -28,7 +56,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ? (process.env.EXPO_BUNDLE_IDENTIFIER_STAGING ?? "ai.multica.mobile.staging")
       : (process.env.EXPO_BUNDLE_IDENTIFIER_DEV ?? "ai.multica.mobile.dev");
 
-  return {
+  return withoutIosPushEntitlement({
     ...config,
     name: isProd
       ? "Multica"
@@ -72,6 +100,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         foregroundImage: "./assets/icon.png",
         backgroundColor: "#0B0B0C",
       },
+      // Firebase Cloud Messaging, for inbox push notifications.
+      googleServicesFile: FIREBASE_ANDROID_IDS.includes(appId)
+        ? "./google-services.json"
+        : undefined,
     },
     plugins: [
       "expo-router",
@@ -104,7 +136,20 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           },
         },
       ],
+      [
+        "expo-notifications",
+        {
+          // Android status-bar icon: the app glyph as a white silhouette.
+          icon: "./assets/notification-icon.png",
+          // Accent for the icon and app name: the --brand token (global.css),
+          // readable on both light and dark shades.
+          color: "#4A6EE0",
+          // Created at runtime by lib/push-notifications.ts; FCM messages
+          // without a channel land here too.
+          defaultChannel: "inbox",
+        },
+      ],
     ],
     extra: { APP_ENV: env },
-  };
+  });
 };

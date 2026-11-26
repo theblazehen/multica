@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "416902743615",
+    "project_id": "multica-blazelight",
+    "storage_bucket": "multica-blazelight.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:416902743615:android:e83fc1c9fe23b568881a8a",
+        "android_client_info": {
+          "package_name": "ai.multica.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2z9Soqj1f6DqxNsv4gs139Vp81bO9nPU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:416902743615:android:f6456635fa27a551881a8a",
+        "android_client_info": {
+          "package_name": "ai.multica.mobile.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2z9Soqj1f6DqxNsv4gs139Vp81bO9nPU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:416902743615:android:53a08f72cc580fdb881a8a",
+        "android_client_info": {
+          "package_name": "ai.multica.mobile.staging"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2z9Soqj1f6DqxNsv4gs139Vp81bO9nPU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

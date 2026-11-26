@@ -65,3 +65,30 @@ describe("iOS scene lifecycle configuration", () => {
     expect(config.scheme).toBe("multica");
   });
 });
+
+describe("Android push configuration", () => {
+  it.each(["development", "staging", "production"])(
+    "wires Firebase and expo-notifications for %s",
+    (env) => {
+      vi.stubEnv("APP_ENV", env);
+      vi.stubEnv("EXPO_BUNDLE_IDENTIFIER_DEV", undefined);
+      vi.stubEnv("EXPO_BUNDLE_IDENTIFIER_STAGING", undefined);
+      vi.stubEnv("EXPO_BUNDLE_IDENTIFIER_PROD", undefined);
+      const config = createConfig({ config: {} } as ConfigContext);
+
+      expect(config.android?.googleServicesFile).toBe("./google-services.json");
+      expect(config.plugins).toContainEqual([
+        "expo-notifications",
+        expect.objectContaining({ defaultChannel: "inbox" }),
+      ]);
+    },
+  );
+
+  it("leaves Firebase out for an app id google-services.json does not list", () => {
+    vi.stubEnv("APP_ENV", "production");
+    vi.stubEnv("EXPO_BUNDLE_IDENTIFIER_PROD", "com.example.multica");
+    const config = createConfig({ config: {} } as ConfigContext);
+
+    expect(config.android?.googleServicesFile).toBeUndefined();
+  });
+});
